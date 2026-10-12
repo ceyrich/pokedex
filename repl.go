@@ -1,4 +1,4 @@
-package repl
+package main
 
 import (
 	"bufio"
@@ -7,7 +7,11 @@ import (
 	"strings"
 )
 
-func StartRepl() {
+type replConfig struct {
+	commands map[string]cliCommand
+}
+
+func StartRepl(config *replConfig) {
 	reader := bufio.NewScanner(os.Stdin)
 	for {
 		fmt.Print("Pokedex > ")
@@ -22,7 +26,7 @@ func StartRepl() {
 
 		command, exists := getCommands()[commandName]
 		if exists {
-			err := command.callback()
+			err := command.callback(config)
 			if err != nil {
 				fmt.Println(err)
 			}
@@ -53,13 +57,13 @@ func getCommands() map[string]cliCommand {
 	}
 }
 
-func commandExit() error {
+func commandExit(config *replConfig) error {
 	fmt.Println("Closing the Pokedex... Goodbye!")
 	os.Exit(0)
 	return nil
 }
 
-func commandHelp() error {
+func commandHelp(config *replConfig) error {
 	fmt.Print("Welcome to the Pokedex!\nUsage:\n\n")
 	for _, cmd := range getCommands() {
 		fmt.Println(cmd.name, ":", cmd.description)
@@ -70,5 +74,6 @@ func commandHelp() error {
 type cliCommand struct {
 	name        string
 	description string
-	callback    func() error
+	callback    func(*replConfig) error
 }
+
